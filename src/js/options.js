@@ -1,9 +1,14 @@
 import { defaultOptions } from './config/defaults';
 import I18n from './utils/i18n';
+import {
+  normalizeNumericOption,
+  normalizeOptionsFormValues,
+} from './options-form';
 import OptionManager from './utils/option-manager';
 
 const optionManager = new OptionManager(defaultOptions);
 const i18n = new I18n();
+const form = document.querySelector('#options-form');
 const bugReportTemplate = `
 <!-- Thanks for reporting! A debug log is already attached. If you have any other info that might be helpful, please write above the line. -->
 
@@ -18,7 +23,7 @@ i18n.populateText();
 function serializeOptionsForm(form) {
   const formData = new FormData(form);
 
-  return {
+  return normalizeOptionsFormValues({
     like_what: formData.get('like_what') || defaultOptions.like_what,
     like_when: formData.get('like_when') || defaultOptions.like_when,
     like_when_minutes:
@@ -26,7 +31,27 @@ function serializeOptionsForm(form) {
     like_when_percent:
       formData.get('like_when_percent') || defaultOptions.like_when_percent,
     disabled: form.elements.disabled.checked,
-  };
+  });
+}
+
+function syncTimingFieldState(selectedTiming) {
+  document
+    .querySelectorAll('[data-timing-option]')
+    .forEach((optionGroup) => {
+      const isActive = optionGroup.dataset.timingOption === selectedTiming;
+      optionGroup.classList.toggle('option-group--active', isActive);
+      optionGroup
+        .querySelector('input[type="number"]')
+        ?.toggleAttribute('aria-invalid', false);
+    });
+}
+
+function updateNumericField(field, nextValue) {
+  const normalizedValue = normalizeNumericOption(field.name, nextValue);
+
+  if (field.value !== normalizedValue) {
+    field.value = normalizedValue;
+  }
 }
 
 const loadOptions = async () => {
@@ -45,6 +70,8 @@ const loadOptions = async () => {
       field.value = val;
     }
   });
+
+  syncTimingFieldState(options.like_when);
 
   chrome.storage.sync.get({ log: '[no log found]' }, ({ log }) => {
     // Add options state to report issue link
@@ -72,10 +99,43 @@ function setIsSaving(isSaving) {
 
 loadOptions();
 
-// When the user changes an option, save it
-document
-  .querySelector('#options-form')
-  .addEventListener('change', handleOptionsChange);
+form.addEventListener('change', handleOptionsChange);
+
+form.addEventListener('input', (event) => {
+  const field = event.target;
+
+  if (!(field instanceof HTMLInputElement) || field.type !== 'number') {
+    return;
+  }
+
+  field
+    .closest('[data-timing-option]')
+    ?.querySelector('input[type="radio"]')
+    ?.click();
+});
+
+form.addEventListener('focusin', (event) => {
+  const field = event.target;
+
+  if (!(field instanceof HTMLInputElement) || field.type !== 'number') {
+    return;
+  }
+
+  field
+    .closest('[data-timing-option]')
+    ?.querySelector('input[type="radio"]')
+    ?.click();
+});
+
+form.addEventListener('blur', (event) => {
+  const field = event.target;
+
+  if (!(field instanceof HTMLInputElement) || field.type !== 'number') {
+    return;
+  }
+
+  updateNumericField(field, field.value);
+}, true);
 
 // Check for saved update info
 async function checkForSavedRelease() {
