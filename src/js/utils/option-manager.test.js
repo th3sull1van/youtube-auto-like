@@ -1,17 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { defaultOptions } from '../config/defaults';
 import OptionManager from './option-manager';
-
-const defaults = {
-  like_what: 'subscribed',
-  like_when: 'instantly',
-  like_when_minutes: '2',
-  like_when_percent: '50',
-  disabled: false,
-};
 
 describe('OptionManager normalize', () => {
   it('merges defaults and preserves string-based numeric fields', () => {
-    const optionManager = new OptionManager(defaults);
+    const optionManager = new OptionManager(defaultOptions);
 
     expect(
       optionManager.normalize({
@@ -28,7 +21,7 @@ describe('OptionManager normalize', () => {
   });
 
   it('normalizes disabled to a boolean', () => {
-    const optionManager = new OptionManager(defaults);
+    const optionManager = new OptionManager(defaultOptions);
 
     expect(optionManager.normalize({ disabled: true }).disabled).toBe(true);
     expect(optionManager.normalize({ disabled: 'yes' }).disabled).toBe(false);

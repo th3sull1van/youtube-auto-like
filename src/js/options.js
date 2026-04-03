@@ -1,14 +1,8 @@
+import { defaultOptions } from './config/defaults';
 import I18n from './utils/i18n';
 import OptionManager from './utils/option-manager';
 
-const defaults = {
-  like_what: 'subscribed',
-  like_when: 'instantly',
-  like_when_minutes: '2',
-  like_when_percent: '50',
-  disabled: false,
-};
-const optionManager = new OptionManager(defaults);
+const optionManager = new OptionManager(defaultOptions);
 const i18n = new I18n();
 const bugReportTemplate = `
 <!-- Thanks for reporting! A debug log is already attached. If you have any other info that might be helpful, please write above the line. -->
@@ -25,12 +19,12 @@ function serializeOptionsForm(form) {
   const formData = new FormData(form);
 
   return {
-    like_what: formData.get('like_what') || defaults.like_what,
-    like_when: formData.get('like_when') || defaults.like_when,
+    like_what: formData.get('like_what') || defaultOptions.like_what,
+    like_when: formData.get('like_when') || defaultOptions.like_when,
     like_when_minutes:
-      formData.get('like_when_minutes') || defaults.like_when_minutes,
+      formData.get('like_when_minutes') || defaultOptions.like_when_minutes,
     like_when_percent:
-      formData.get('like_when_percent') || defaults.like_when_percent,
+      formData.get('like_when_percent') || defaultOptions.like_when_percent,
     disabled: form.elements.disabled.checked,
   };
 }
