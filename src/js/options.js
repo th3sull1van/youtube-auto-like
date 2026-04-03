@@ -1,4 +1,5 @@
 import { defaultOptions } from './config/defaults';
+import { LOG_STORAGE_KEY } from './content/debug';
 import I18n from './utils/i18n';
 import {
   normalizeNumericOption,
@@ -73,7 +74,8 @@ const loadOptions = async () => {
 
   syncTimingFieldState(options.like_when);
 
-  chrome.storage.sync.get({ log: '[no log found]' }, ({ log }) => {
+  chrome.storage.local.get({ [LOG_STORAGE_KEY]: '[no log found]' }, (items) => {
+    const log = items[LOG_STORAGE_KEY];
     // Add options state to report issue link
     const reportLink = document.querySelector('#report-link');
     const url = `https://github.com/austencm/youtube-auto-like/issues/new?labels=bug&body=${encodeURIComponent(
