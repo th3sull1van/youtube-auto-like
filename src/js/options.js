@@ -21,6 +21,20 @@ __________________________
 
 i18n.populateText();
 
+function serializeOptionsForm(form) {
+  const formData = new FormData(form);
+
+  return {
+    like_what: formData.get('like_what') || defaults.like_what,
+    like_when: formData.get('like_when') || defaults.like_when,
+    like_when_minutes:
+      formData.get('like_when_minutes') || defaults.like_when_minutes,
+    like_when_percent:
+      formData.get('like_when_percent') || defaults.like_when_percent,
+    disabled: form.elements.disabled.checked,
+  };
+}
+
 const loadOptions = async () => {
   const options = await optionManager.get();
 
@@ -29,7 +43,9 @@ const loadOptions = async () => {
 
     const val = options[field.name];
 
-    if (field.type === 'radio' || field.type === 'checkbox') {
+    if (field.type === 'checkbox') {
+      field.checked = Boolean(val);
+    } else if (field.type === 'radio') {
       field.checked = field.value === val;
     } else {
       field.value = val;
@@ -47,11 +63,7 @@ const loadOptions = async () => {
 };
 
 async function handleOptionsChange(e) {
-  const newOptions = {};
-  // Extract form data
-  Array.from(new FormData(e.currentTarget).entries()).forEach(
-    ([name, val]) => (newOptions[name] = val)
-  );
+  const newOptions = serializeOptionsForm(e.currentTarget);
 
   setIsSaving(true);
   await optionManager.set(newOptions);
